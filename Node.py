@@ -1,3 +1,4 @@
+# coding: utf-8
 import numpy as np
 from Packet import Packet
 import random
@@ -22,6 +23,7 @@ class Node:
         self.packet = Packet(self.packetCount)
         self.transmissionStartTime = nw.cur_time
 
+    #TODO: Generate real random number
     def selectReceiver(self, nw):
         l = range(1, nw.nodeCount+1)
         l.remove(self.id)
@@ -42,6 +44,8 @@ class Node:
         highVal = (2**self.packet.collision_count)-1
         if highVal>8:
             highVal = 8
+            #print("Impossível enviar, pois ocorreram muitas colisões do mesmo pacote!")
+
         self.backoffTime = nw.cur_time + (np.random.randint(0, high=highVal) * nw.slot_time)
         print("Node ", self.id, "Packet id = ", self.packet.id, " Packet collision count = ", self.packet.collision_count, " backoff = ", self.backoffTime)
 
@@ -72,9 +76,6 @@ class Node:
         except:
             th = -1
         return th
-
-
-
 
 # n = Node(1, 0.5)
 

@@ -1,11 +1,11 @@
 # coding: utf-8
 from Transmitter import Transmitter
+from Frame import Frame
 import time
 import collections
 from multiprocessing import Process, Lock  # not using multithreading because it doesn't provide real parallelism
 
 '''Simulate the channel (medium) of transmission of data'''
-
 
 class Simulator:
 
@@ -46,10 +46,10 @@ class Simulator:
             # lock.release()
         self.collision_detection()
 
+        print("-------------------------------------------")
         for i in range(1, self.transmitter_count + 1):
-            print("Status do Transmissor {}: {} para {}".format(i, self.transmitter[i].status,
-                                                                self.transmitter[i].current_receiver))
-        print("-------------------------------------")
+            print("Status do Transmissor {}: {} para {}".format(i, self.transmitter[i].status, self.transmitter[i].current_receiver))
+        print("-------------------------------------------")
         self.current_time = self.current_time + 1
 
         print("Tempo: {} s".format(self.current_time))
@@ -74,15 +74,16 @@ class Simulator:
             self.collision_count = self.collision_count + 1
             for i in active_transmitters:
                 self.transmitter[i].stop_transmission("Colisão")
-                self.send_jam()
+            self.send_jam()
+            #self.transmitter[i].send_jam(self)
+            #self.transmitter[i].check_if_many_collisions(self)
 
     # Notify the transmitters that a collision had occured
     # def send_jam(self, transmitter):
     def send_jam(self):
-        print("Olá! Eu sou um sinal de JAM! Ocorreu uma colisão!")
-        '''for i in range(1, self.transmitter_count + 1):
-            transmitter.status = "Esperando"'''
-        # TODO: Stop transmissions by all stations (change all status to Waiting)
+        print("Olá! Eu sou um sinal de JAM e vim avisar vocês que ocorreu uma colisão no canal!")
+        for i in range(1, self.transmitter_count + 1):
+            self.transmitter[i].status = "Colisão"
 
     # Print basic statistics of the simulation
     def print_statistics(self):
@@ -103,7 +104,7 @@ if __name__ == "__main__":
     dist_transmitters = 2000
     max_time = int(input("Digite o tempo de simulação (em segundos): "))
     t_count = int(input("Digite a quantidade de transmissores: "))
-    delay = input("Ver os envio com delay? (s/n): ")
+    delay = input("Ver os quadros sendo enviados em tempo real? (s/n): ")
     simulation = Simulator(frame_lambda, time_sl, max_time, t_count, dist_transmitters)
     for _ in range(max_time):
         # while True:

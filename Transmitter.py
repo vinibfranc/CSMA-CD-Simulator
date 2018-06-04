@@ -29,8 +29,8 @@ class Transmitter:
 
     # Select a receiver to a frame based on a random number and choice
     def select_receiver(self, network):
-        random_receiver = list(range(1, network.transmitter_count + 1))
-        random_receiver.remove(self.id)
+        random_receiver = range(1, network.transmitter_count + 1)
+        #random_receiver.remove(self.id)
         return random.choice(random_receiver)
 
     # Restart transmission (used when a collision occured and the frame waited its backoff time)
@@ -50,24 +50,30 @@ class Transmitter:
     def calculate_backoff_time(self, network):
         self.frame.increment_collision_count()
         # Like Ethernet does, if there are more than 16 collisions of the same frame we abort its transmission
+        # many_transmissions = False
         if self.frame.collision_count > 16:
             print("******************************************************************")
-            print("Impossível enviar, pois ocorreram muitas colisões do mesmo pacote!")
+            print("Impossível enviar, pois ocorreram muitas colisões do mesmo quadro!")
             print("******************************************************************")
             self.stop_transmission("Muitas colisões!")
+            many_transmissions = True
 
+        '''if(many_transmissions):
+            self.stop_transmission("Muitas colisões")'''
+
+        # After c collisions, a random number of slot times between 0 and 2^c − 1 is chosen. For the first collision, each sender will wait 0 or 1 slot times. After the second collision, the senders will wait anywhere from 0 to 3 slot times (inclusive). After the third collision, the senders will wait anywhere from 0 to 7 slot times (inclusive), and so forth. As the number of retransmission attempts increases, the number of possibilities for delay increases exponentially.
         random_wait = (2 ** self.frame.collision_count) - 1
 
         if random_wait > 8:
             random_wait = 8
 
-        self.backoff_time = network.current_time + (np.random.randint(0, high=random_wait) * network.time_slot)
-        print("Transmissor:", self.id, "ID do quadro:", self.frame.id, "Quantidade de colisões do pacote:", self.frame.collision_count, " backoff = ", self.backoff_time)
+        self.backoff_time = network.current_time + (np.random.randint(0, high=random_wait) * self.frame.collision_count)
 
-    '''def check_if_many_collisions(self, network):
-        if network.collision_count > 16 and self.current_transm_frame == self.frame.id:
-            print("Impossível enviar, pois ocorreram muitas colisões do mesmo pacote!")
-            self.stop_transmission("Muitas colisões!")'''
+        # self.backoff_time = network.current_time + (np.random.randint(0, high=random_wait) * network.time_slot)
+        # self.backoff_time = network.current_time + (np.random.randint(0, high=random_wait) * self.frame.collision_count)
+        # self.backoff_time = 2 ** (self.frame.collision_count + (np.random.randint(0, high=random_wait)))
+
+        print("Transmissor:", self.id, "ID do quadro:", self.frame.id, "Quantidade de colisões do quadro:", self.frame.collision_count, "Espera (backoff): ", self.backoff_time)
 
     # Listen the medium and verifies 4 possibilities on the transmitter
     '''
@@ -77,7 +83,7 @@ class Transmitter:
         4- If the status is Many Collisions, we stop the transmissions for the current frame
         5- If the station is waiting and its backoff ends, we try to retransmit the frame
     '''
-    def carrier_sensing(self, network):
+    def verify_status(self, network):
         if self.status == 'Pronto' and self.check_if_frame_available():
             self.start_transmission(network)
 
@@ -93,17 +99,15 @@ class Transmitter:
             self.calculate_backoff_time(network)
             self.status = 'Esperando'
 
-        elif self.status == 'Muitas colisões':
-            self.stop_transmission("Muitas colisões")
-
         elif self.status == 'Esperando' and self.backoff_time <= network.current_time:
             self.restart_transmission(network.current_time)
 
+        elif self.status == 'Muitas colisões':
+            self.stop_transmission("Muitas colisões")
+
     # Measure the efficiency of the algorithm in the simulating condition
     def throughput_analysis(self, network):
-        # pass
         total_time = (self.frame_count - 1) * network.transm_time
-        # throughput = float((network.distance[network.frame_count] - network.distance[1])* network.distance_between_nodes) / network.speed
         throughput = float((network.transmitter_count - 1) * network.distance_between_nodes * (10 ** 6)) / network.speed
         total_collision_time = network.collision_count * 2 * throughput
         total_send_time = (self.frame_count - 1) * (network.transm_time + throughput)
@@ -113,6 +117,3 @@ class Transmitter:
         except:
             average_transfer = -1
         return average_transfer
-
-# n = Frame(1, 0.5)
-

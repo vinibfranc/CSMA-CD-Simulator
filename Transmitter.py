@@ -3,13 +3,15 @@ import numpy as np
 from Frame import Frame
 import random
 # import Simulator
+from threading import Thread, Lock
 
 '''Transmitter info and methods to perform CSMA/CD control'''
 class Transmitter:
 
-    def __init__(self, id, lamb):
+    def __init__(self, id, lamb, medium_ref):
 
         self.id = id
+        self.medium_ref = medium_ref
         self.lambda_number = lamb  # in microseconds
         self.frame = None
         self.status = "Pronto"
@@ -24,8 +26,14 @@ class Transmitter:
         self.status = "Transmitindo"
         self.current_receiver = self.select_receiver(network)
         self.current_transm_frame = ((abs(network.distance[self.id] - network.distance[self.current_receiver])) * network.distance_between_nodes) / network.speed
-        self.frame = Frame(self.frame_count)
+        # self.frame = Frame(self.frame_count, )
         self.transm_start_time = network.current_time
+
+    # Send frame to the Medium
+    def send(self, message):
+        self.message = message
+        Thread(target=self.medium_ref.modify_medium(message)).start()
+        
 
     # Select a receiver to a frame based on a random number and choice
     def select_receiver(self, network):
@@ -53,10 +61,10 @@ class Transmitter:
         # many_transmissions = False
         if self.frame.collision_count > 16:
             print("******************************************************************")
-            print("Impossível enviar, pois ocorreram muitas colisões do mesmo quadro!")
+            print("Impossivel enviar, pois ocorreram muitas colisoes do mesmo quadro!")
             print("******************************************************************")
             self.stop_transmission("Muitas colisões!")
-            many_transmissions = True
+            # many_transmissions = True
 
         '''if(many_transmissions):
             self.stop_transmission("Muitas colisões")'''
@@ -73,7 +81,7 @@ class Transmitter:
         # self.backoff_time = network.current_time + (np.random.randint(0, high=random_wait) * self.frame.collision_count)
         # self.backoff_time = 2 ** (self.frame.collision_count + (np.random.randint(0, high=random_wait)))
 
-        print("Transmissor:", self.id, "ID do quadro:", self.frame.id, "Quantidade de colisões do quadro:", self.frame.collision_count, "Espera (backoff): ", self.backoff_time)
+        print("Transmissor:", self.id, "ID do quadro:", self.frame.id, "Quantidade de colisoes do quadro:", self.frame.collision_count, "Espera (backoff): ", self.backoff_time)
 
     # Listen the medium and verifies 4 possibilities on the transmitter
     '''

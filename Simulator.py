@@ -1,10 +1,11 @@
 # coding: utf-8
 from Transmitter import Transmitter
+from Medium import  Medium
 from Frame import Frame
 import time
 import collections
 import numpy as np
-from multiprocessing import Process, Lock, Array  # not using multithreading because it doesn't provide real parallelism
+from threading import Thread, Lock
 
 '''Simulate the channel (medium) of transmission of data'''
 
@@ -25,19 +26,19 @@ class Simulator:
         self.transmitter_count = transmitter_count
         self.distance_between_nodes = distance_between_nodes
         self.distance = collections.defaultdict(int)
-        self.transmitter = [-1]
+        self.transmitter = []
         self.lambda_number = lambda_number
 
         # Create a shared list of bits that will be the simulation of the shared media (channel)
-        self.medium_size = 1500
+        '''self.medium_size = 1500
         self.medium = np.zeros(self.medium_size)
         self.medium[:750] = 1
         np.random.shuffle(self.medium)
-        print("Meio antes do início: {}".format(self.medium))
+        print("Meio antes do início: {}".format(self.medium))'''
 
         # Assign the required number of transmitters and set up a distance between each one
         for i in range(1, self.transmitter_count + 1):
-            self.transmitter.append(Transmitter(i, float(self.lambda_number) / self.time_slot))
+            self.transmitter.append(Transmitter(i, float(self.lambda_number) / self.time_slot, medium))
             self.distance[i] = (i - 1) * self.distance_between_nodes
 
     '''def modify_medium(self, lock, transmitter_count):
@@ -92,49 +93,51 @@ class Simulator:
     def print_statistics(self):
         for i in range(1, t_count + 1):
             print("Total de quadros enviados pelo transmissor {}: {}".format(i, self.transmitter[i].frame_count - 1))
-            print("Taxa de transferência de ponta a ponta média do transmissor {}: {}".format(i, self.transmitter[
+            print("Taxa de transferencia de ponta a ponta média do transmissor {}: {}".format(i, self.transmitter[
                 i].throughput_analysis(self)))
         print("Numero de colisoes: ", self.collision_count)
         print("Tempo de simulacao: ", self.current_time)
 
 # Run the simulation
+
 if __name__ == "__main__":
+    global medium
+    medium = Medium(10)
     # time_sl = 50
     time_sl = 10
     # frame_lambda = 0.5
     frame_lambda = 5
     dist_transmitters = 2000
+    delay = ""
     while True:
         try:
-            max_time = int(input("Digite o tempo de simulação (em segundos): "))
+            max_time = int(input("Digite o tempo de simulacao (em segundos): "))
             t_count = int(input("Digite a quantidade de transmissores: "))
             # TODO: Method to validate delay
-            delay = input("Ver os quadros sendo enviados em tempo real? (s/n): ")
+            # delay = eval(input("Ver os quadros sendo enviados em tempo real? (s/n): "))
             simulation = Simulator(frame_lambda, time_sl, max_time, t_count, dist_transmitters)
-            '''for _ in range(max_time):
-                simulation.run_transmissions()
-                if delay == 's' or delay == 'S':
-                    time.sleep(1)
-                elif delay == 'n' or delay == 'N':
-                    time.sleep(0)
-                else
-                simulation.print_statistics()'''
             break
         except ValueError:
             print("Valor digitado incorretamente! Tente novamente!")
             continue
 
+
     for _ in range(max_time):
 
-        '''lock_st = Lock()
-        p = [0] * simulation.medium_size
-        for i in range(1, simulation.transmitter_count + 1):
-            p[i] = Process(target=simulation.modify_medium, args=(lock_st, i)).start()
+        lock_st = Lock()
+
+        # p = [0] * simulation.medium_size
+        for i in simulation.transmitter:
+            a = np.zeros(8)
+            frame_message = Frame(1,"asd")
+            i.send(frame_message)
+
             # print(p[i])'''
 
-        simulation.run_transmissions()
-
-        if delay == "s" or delay == "S":
-            time.sleep(1)
+        #simulation.run_transmissions()
+        time.sleep(0.1)
+        medium.pass_values()
+        '''if delay == "s" or delay == "S":
+            time.sleep(1)'''
 
     simulation.print_statistics()

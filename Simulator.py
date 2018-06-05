@@ -25,7 +25,7 @@ class Simulator:
 
         print("-------------------------------------------")
         for i in range(1, self.transmitter_count + 1):
-            print("Status do Transmissor {}: {} para {}".format(i, self.transmitter[i].status,
+            print("Estado do Transmissor {}: {} para {}".format(i, self.transmitter[i].status,
                                                                 self.transmitter[i].current_receiver))
         print("-------------------------------------------")
         self.current_time = self.current_time + 1

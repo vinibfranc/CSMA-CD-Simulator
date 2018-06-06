@@ -1,61 +1,61 @@
 # coding: utf-8
-
 from Transmitter import Transmitter
 from Medium import Medium
 from Frame import Frame
 import time
 import sys
-from threading import Thread
+from threading import Thread, Lock
 
-'''Simulate the CSMA/CD process using Threads and and a shared Medium'''
+'''Simulate the channel (medium) of transmission of data'''
 class Simulator:
 
     def __init__(self, transmitter_count):
         self.transmitter_count = transmitter_count
         self.transmitter = []
         for i in range(1, self.transmitter_count + 1):
-            self.transmitter.append(Transmitter(i, medium))
+            self.transmitter.append(Transmitter(i,  medium))
 
-
+# Will be a thread that update medium for each cycle
 def run_sim(m):
-    print("Simulacao iniciada!")
+    print("Simulation started")
     for i in range(500):
         time.sleep(0.1)
         medium.advance_clock()
-    print("Simulacao concluida!")
+    print("Simulation completed")
     sys.exit()
 
-# Run the simulation with user input of transmitter number
+# Run the simulation
 if __name__ == "__main__":
     global medium
     time_sl = 10
-    medium = Medium(10)
+    medium = Medium(time_sl)
     while True:
         try:
-            t_count = int(input("Digite a quantidade de transmissores: "))
+            t_count = int(input("Type the number of transmitters: "))
             simulation = Simulator(t_count)
             break
         except ValueError:
-            print("Valor digitado incorretamente! Tente novamente!")
+            print("Incorrect input! Try again")
             continue
 
     threads = []
     medium.advance_clock()
     for device in simulation.transmitter:
-        frame_message = Frame(1, "asd")
+        frame_message = Frame(1,"message")
         t = Thread(target=device.send, args=(frame_message,))
         threads.append(t)
         # t.start()
 
-    print("ok2!")
+    print("ok")
 
     mt = Thread(target=run_sim, args=(medium,))
     mt.start()
 
+
     for t in threads:
         t.start()
     # mt.join()
-
-    print("ok3!")
+    
+    print("ok3")
     time.sleep(10)
-    print("ok4!")
+    print("ok4")

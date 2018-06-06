@@ -14,11 +14,11 @@ class Medium:
         self.count_writes = 0
         self.last_writes = 0
 
+    # Control the modifications on medium to detect collisions
     def modify_medium(self, val):
         self.last_medium = val
         self.count_writes += 1
-        # print("Meio modificado no clock: ", str(self.clock), "contador: ", str(self.count_writes))
-        print("Meio modificado no clock: {}, contador {}".format(self.clock, self.count_writes))
+        print("Medium modified at clock: ", str(self.clock), " count: ", str(self.count_writes))
 
     def pass_values(self):
         self.first_medium = self.last_medium
@@ -27,22 +27,20 @@ class Medium:
         self.count_writes = 0
         self.clock += 1
 
-    # Collision detection
+    # Collision detection occurs when more than one changes medium at this final
     def collision(self):
-        # print("Contador de colisoes: ", str(self.count_writes))
-        print("Contador de colisoes: {}".format(self.count_writes))
+        print("Collision count ", str(self.count_writes))
         if self.last_writes > 1:
             return True
         else:
             return False
 
-    # for each cycle detect if a collision occured
+    # For each cycle detect if a collision occured (called by a thread)
     def advance_clock(self):
-        # print("Clock avancou e escreveu: ", str(self.count_writes))
-        print("Clock avancou e escreveu: {}".format(self.count_writes))
+        print("Clock advanced, writes: ", str(self.count_writes))
         self.pass_values()
 
-    # Notify the station if is idle or busy
+    # Notify the station if medium is idle or busy
     def sense(self):
         # returns true if channel is busy
         if self.last_writes != 0:

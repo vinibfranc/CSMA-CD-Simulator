@@ -1,95 +1,81 @@
 # coding: utf-8
 import numpy as np
 from Frame import Frame
-import random
 import time
+# import Simulator
 
 '''Transmitter info and methods to perform CSMA/CD control'''
 class Transmitter:
 
-    #Transmitter constructor
     def __init__(self, id, medium_ref):
 
         self.id = id
         self.medium_ref = medium_ref
         self.frame = None
-        self.status = "Pronto"
         self.frame_count = 1
 
     # Send frame to the Medium
     def send(self, message):
         self.message = message
-        # print( "Enviando mensagem: " + message.message + " -- " + str(self.id))
-        # print("Enviando no ciclo: ", self.medium_ref.clock)
-        print("Enviando mensagem {} -- {}".format(message.message, self.id))
-        print("Enviando no ciclo: {}".format(self.medium_ref.clock))
+        print("Sending message: " + message.message + " --> " + str(self.id))
+        print("Sending at clock ", self.medium_ref.clock)
         self.send_all(message)
-        print("Mensagem enviada!!")
+        print("Message sent!!")
 
-    # Inject characters in the medium if the send is permitted or call collision treatment
+    # Call all functions to send frames, jam or wait to retransmit
     def send_all(self, frame):
         if self.can_send():
             col = False
             for c in frame.message:
                 if not col:
-                    # print("Transmissor ", str(self.id), "vai enviar: ", c)
-                    print("Transmissor {} vai enviar: {}".format(self.id, c))
+                    print ("Transmitter ", str(self.id), "will send: ", c)
                     self.medium_ref.modify_medium(c)
                     col = self.medium_ref.collision()
-                    time.sleep(1)
-                    # print("Colisao: {} ", str(col))
-                    print("Colisao: {}".format(col))
+                    time.sleep(0.1)
+                    print("Collision: ", str(col))
                 else:
-                    # print("JAM detectado no transmissor --> " + str(self.id))
-                    print("JAM detectado no transmissor --> {}".format(self.id))
+                    print("Jam detected at transmitter " + str(self.id))
                     self.send_jam()
-
-                    # ERRO (backoff zerado)
-
-                    # frame.collision_count += 1
-                    # frame.increment_collision_count()
-                    # bf = self.calculate_backoff(frame.collision_count)
-                    bf = self.calculate_backoff(self.medium_ref.count_writes)
-                    # print("Vai esperar por " + str(bf) + "ciclos")
-                    print("Vai esperar por {} ciclos (BACKOFF)".format(bf))
+                    bf = self.calculate_backoff(frame.collision_count)
+                    print("-------------------------------------")
+                    print("Transmitter: ", self.id, " --> Backoff --> Will wait for " + str(bf) + " cycles")
+                    print("-------------------------------------")
                     time.sleep(bf * 0.5)
-                    # frame.collision_count += 1
-
+                    frame.collision_count += 1
                     self.retry(frame)
                     break
+
         else:
-            # print(self.id, " nao pode enviar!")
-            print("{} não pode enviar")
+            print("Transmitter ", self.id, " cannot send")
             # channel busy, wait and send again
-            time.sleep(0.5)
+            time.sleep(0.1)
             self.send_all(frame)
 
-    # Verify if the frame tried to send more than 16 times and abort it
+    # Retransmit the frames if possible and abort if attempts > 16
     def retry(self, frame):
         if frame.collision_count > 16:
-            print("16 colisoes, abortar transmissao!")
+            print("16 collisins, abort!")
         else:
             self.send_all(frame)
 
-    # Calculate backoff and asign to a poisson distribution based on number of attempts
+    # Calculate exponential time to transmitters which collided wait
     def calculate_backoff(self, attempt):
-        max_backoff = (2 ** attempt) - 1
+        max_backoff = 2 ** attempt
         return np.random.poisson(max_backoff)
 
-    # Notify the other transmitters that a collision had occured
+    # Notify the transmitters that a collision had occured
     def send_jam(self):
-        # print("Ola! Eu sou um sinal de JAM e vim avisar vocês que ocorreu uma colisao no canal!")
+        # print("Olá! Eu sou um sinal de JAM e vim avisar vocês que ocorreu uma colisão no canal!")
         jam_message = "COLISION"
         for c in jam_message:
             self.medium_ref.modify_medium(c)
-            # print("Enviou: ", c, " de JAM. Transmissor : ", str(self.id))
-            print("Enviou: {} de JAM. Transmissor: {}".format(c, self.id))
-            time.sleep(0.5)
-        print("JAM enviado!")
+            print("Sent char: ", c, " of jam. Transmissor :", str(self.id))
+            time.sleep(0.1)
+        print("Jam sent!")
 
-    # Verify if the actual transmitter can send its frames, i. e., medium idle
+    # Verify if media is idle to transmit
     def can_send(self):
         time.sleep(0.1)
         v = self.medium_ref.sense()
-        print("Transmissor ", str(self.id), " sensoriou o meio... Pode enviar? ", str(not v))
+        print("Transmitter ", str(self.id), " sensed medium. Can send?: ", str(not v))
         return not v

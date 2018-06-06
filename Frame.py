@@ -1,5 +1,4 @@
 # coding: utf-8
-
 '''Frame simplified information'''
 class Frame:
     def __init__(self, id, message):

@@ -19,8 +19,10 @@ class Transmitter:
     # Send frame to the Medium
     def send(self, message):
         self.message = message
-        print( "Enviando mensagem: " + message.message + " -- " + str(self.id))
-        print("Enviando no ciclo: ", self.medium_ref.clock)
+        # print( "Enviando mensagem: " + message.message + " -- " + str(self.id))
+        # print("Enviando no ciclo: ", self.medium_ref.clock)
+        print("Enviando mensagem {} -- {}".format(message.message, self.id))
+        print("Enviando no ciclo: {}".format(self.medium_ref.clock))
         self.send_all(message)
         print("Mensagem enviada!!")
 
@@ -30,22 +32,34 @@ class Transmitter:
             col = False
             for c in frame.message:
                 if not col:
-                    print("Transmissor ", str(self.id), "vai enviar: ", c)
+                    # print("Transmissor ", str(self.id), "vai enviar: ", c)
+                    print("Transmissor {} vai enviar: {}".format(self.id, c))
                     self.medium_ref.modify_medium(c)
                     col = self.medium_ref.collision()
                     time.sleep(1)
-                    print("Colisao: ", str(col))
+                    # print("Colisao: {} ", str(col))
+                    print("Colisao: {}".format(col))
                 else:
-                    print("JAM detectado no transmissor --> " + str(self.id))
+                    # print("JAM detectado no transmissor --> " + str(self.id))
+                    print("JAM detectado no transmissor --> {}".format(self.id))
                     self.send_jam()
-                    bf = self.calculate_backoff(frame.collision_count)
-                    print("Vai esperar por " + str(bf) + "ciclos")
-                    time.sleep(bf*0.5)
-                    frame.collision_count += 1
+
+                    # ERRO (backoff zerado)
+
+                    # frame.collision_count += 1
+                    # frame.increment_collision_count()
+                    # bf = self.calculate_backoff(frame.collision_count)
+                    bf = self.calculate_backoff(self.medium_ref.count_writes)
+                    # print("Vai esperar por " + str(bf) + "ciclos")
+                    print("Vai esperar por {} ciclos (BACKOFF)".format(bf))
+                    time.sleep(bf * 0.5)
+                    # frame.collision_count += 1
+
                     self.retry(frame)
                     break
         else:
-            print(self.id, " nao pode enviar!")
+            # print(self.id, " nao pode enviar!")
+            print("{} não pode enviar")
             # channel busy, wait and send again
             time.sleep(0.5)
             self.send_all(frame)
@@ -68,7 +82,8 @@ class Transmitter:
         jam_message = "COLISION"
         for c in jam_message:
             self.medium_ref.modify_medium(c)
-            print("Enviou: ", c, " de JAM. Transmissor : ", str(self.id))
+            # print("Enviou: ", c, " de JAM. Transmissor : ", str(self.id))
+            print("Enviou: {} de JAM. Transmissor: {}".format(c, self.id))
             time.sleep(0.5)
         print("JAM enviado!")
 
@@ -76,5 +91,5 @@ class Transmitter:
     def can_send(self):
         time.sleep(0.1)
         v = self.medium_ref.sense()
-        print("Transmissor ", str(self.id), " sensoriou o meio... Pode enviar?: ", str(not v))
+        print("Transmissor ", str(self.id), " sensoriou o meio... Pode enviar? ", str(not v))
         return not v

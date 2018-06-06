@@ -7,6 +7,10 @@ import sys
 from threading import Thread, Lock
 
 '''Simulate the channel (medium) of transmission of data'''
+
+# To Run it just type: python Simulator.py
+# You need to have all classes in the same folder to do that!
+
 class Simulator:
 
     def __init__(self, transmitter_count):

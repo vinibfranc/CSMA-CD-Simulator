@@ -1,7 +1,7 @@
 # coding: utf-8
-import numpy as np
 from Frame import Frame
 import time
+import random
 # import Simulator
 
 '''Transmitter info and methods to perform CSMA/CD control'''
@@ -19,6 +19,7 @@ class Transmitter:
         self.message = message
         print("Sending message: " + message.message + " --> " + str(self.id))
         print("Sending at clock ", self.medium_ref.clock)
+        time.sleep(0.1)
         self.send_all(message)
         print("Message sent!!")
 
@@ -34,14 +35,18 @@ class Transmitter:
                     time.sleep(0.1)
                     print("Collision: ", str(col))
                 else:
+                    time.sleep(1)
                     print("Jam detected at transmitter " + str(self.id))
                     self.send_jam()
+                    frame.collision_count += 1
                     bf = self.calculate_backoff(frame.collision_count)
+                    time.sleep(1)
                     print("-------------------------------------")
+                    print("Collisions before backoff: ", frame.collision_count)
                     print("Transmitter: ", self.id, " --> Backoff --> Will wait for " + str(bf) + " cycles")
                     print("-------------------------------------")
-                    time.sleep(bf * 0.5)
-                    frame.collision_count += 1
+                    time.sleep(bf * 1)
+                    # frame.collision_count += 1
                     self.retry(frame)
                     break
 
@@ -54,14 +59,16 @@ class Transmitter:
     # Retransmit the frames if possible and abort if attempts > 16
     def retry(self, frame):
         if frame.collision_count > 16:
-            print("16 collisins, abort!")
+            print("16 collisions, abort!")
         else:
             self.send_all(frame)
 
     # Calculate exponential time to transmitters which collided wait
     def calculate_backoff(self, attempt):
-        max_backoff = 2 ** attempt
-        return np.random.poisson(max_backoff)
+        max_backoff = (2 ** attempt)
+        # return np.random.poisson(max_backoff)
+        range_values = range(1, max_backoff)
+        return random.choice(range_values)
 
     # Notify the transmitters that a collision had occured
     def send_jam(self):

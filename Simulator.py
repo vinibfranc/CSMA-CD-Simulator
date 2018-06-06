@@ -15,6 +15,15 @@ class Simulator:
         for i in range(1, self.transmitter_count + 1):
             self.transmitter.append(Transmitter(i,  medium))
 
+    #Print basic statistics of the simulation
+    '''def print_statistics(self):
+        for i in range(1, t_count + 1):
+            print("Total de quadros enviados pelo transmissor {}: {}".format(i, self.transmitter[i].frame_count - 1))
+            print("Taxa de transferência de ponta a ponta média do transmissor {}: {}".format(i, self.transmitter[
+                i].throughput_analysis(self)))
+        print("Numero de colisoes: ", self.collision_count)
+        print("Tempo de simulacao: ", self.current_time)'''
+
 # Will be a thread that update medium for each cycle
 def run_sim(m):
     print("Simulation started")
@@ -55,7 +64,7 @@ if __name__ == "__main__":
     for t in threads:
         t.start()
     # mt.join()
-    
+
     print("ok3")
-    time.sleep(10)
+    time.sleep(2)
     print("ok4")
